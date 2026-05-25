@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AI & Боты — визитка</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg:#0a0a14; --card:rgba(255,255,255,.04); --stroke:rgba(140,120,255,.18);
+    --accent:#7c5cff; --accent2:#4ab3ff; --txt:#eceaf6; --muted:#8f8caa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--txt); overflow-x:hidden;
+    min-height:100vh; position:relative;
+  }
+  /* живой фон — плавно дышащие пятна */
+  .glow{position:fixed;border-radius:50%;filter:blur(70px);opacity:.5;z-index:0;pointer-events:none}
+  .g1{width:300px;height:300px;background:#7c5cff;top:-80px;left:-60px;animation:float1 11s ease-in-out infinite}
+  .g2{width:260px;height:260px;background:#4ab3ff;bottom:-60px;right:-50px;animation:float2 13s ease-in-out infinite}
+  @keyframes float1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,50px) scale(1.15)}}
+  @keyframes float2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,-40px) scale(1.2)}}
+
+  .wrap{position:relative;z-index:1;padding:26px 18px 40px;max-width:480px;margin:0 auto}
+
+  /* шапка */
+  .hero{text-align:center;padding:18px 0 26px;opacity:0;transform:translateY(16px);animation:rise .7s .1s forwards}
+  .avatar{
+    width:84px;height:84px;border-radius:24px;margin:0 auto 16px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-size:40px;
+    box-shadow:0 0 40px rgba(124,92,255,.5); animation:pulse 3s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{box-shadow:0 0 30px rgba(124,92,255,.4)}50%{box-shadow:0 0 55px rgba(124,92,255,.7)}}
+  .hero h1{font-size:25px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px}
+  .hero p{font-size:14px;color:var(--muted);line-height:1.5}
+  .grad{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+  /* карточки услуг */
+  .section-title{font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:22px 6px 12px;opacity:0;animation:rise .6s forwards}
+  .card{
+    background:var(--card);border:1px solid var(--stroke);border-radius:18px;
+    padding:16px 18px;margin-bottom:12px;backdrop-filter:blur(12px);
+    opacity:0;transform:translateY(18px);cursor:pointer;
+    transition:transform .25s,border-color .25s,background .25s;
+  }
+  .card:active{transform:scale(.97)}
+  .card .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .card .ico{font-size:24px}
+  .card .ttl{font-size:16px;font-weight:600;flex:1}
+  .card .price{font-size:14px;font-weight:700;color:var(--accent2);white-space:nowrap}
+  .card .desc{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5;display:none}
+  .card.open .desc{display:block;animation:fade .3s}
+  .card.open{border-color:rgba(124,92,255,.5);background:rgba(124,92,255,.08)}
+
+  /* кнопка заказа */
+  .cta{
+    width:100%;margin-top:22px;padding:17px;border:none;border-radius:16px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;font-size:16px;font-weight:700;cursor:pointer;
+    box-shadow:0 8px 30px rgba(124,92,255,.45);
+    opacity:0;transform:translateY(18px);transition:transform .2s;
+  }
+  .cta:active{transform:scale(.97)}
+  .links{display:flex;gap:10px;margin-top:12px;opacity:0;transform:translateY(18px)}
+  .links a{
+    flex:1;text-align:center;padding:14px;border-radius:14px;text-decoration:none;
+    background:var(--card);border:1px solid var(--stroke);color:var(--txt);
+    font-size:14px;font-weight:600;backdrop-filter:blur(12px);transition:transform .2s
+  }
+  .links a:active{transform:scale(.96)}
+
+  @keyframes rise{to{opacity:1;transform:translateY(0)}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .show{animation:rise .55s forwards}
+</style>
+</head>
+<body>
+  <div class="glow g1"></div>
+  <div class="glow g2"></div>
+
+  <div class="wrap">
+    <div class="hero">
+      <div class="avatar">🤖</div>
+      <h1>AI <span class="grad">&amp; Боты</span></h1>
+      <p>Делаю Telegram-ботов под твою задачу.<br>Живой код, а не конструктор.</p>
+    </div>
+
+    <div class="section-title" id="st">Услуги и цены</div>
+    <div id="cards"></div>
+
+    <button class="cta" id="order">📝 Заказать бота</button>
+    <div class="links" id="links">
+      <a href="#" id="channel">📢 Наш канал</a>
+      <a href="#" id="dm">💬 Написать</a>
+    </div>
+  </div>
+
+<script>
+  // ==== НАСТРОЙКИ (поменяй под себя) ====
+  var OWNER_USER = "slaxid";              // твой @ без собачки
+  var CHANNEL    = "https://t.me/ai_i_boty";      // ссылка на канал
+
+  var tg = window.Telegram ? window.Telegram.WebApp : null;
+  if (tg) { tg.ready(); tg.expand(); }
+
+  function haptic(type){ try{ tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred(type||'light'); }catch(e){} }
+
+  var SERVICES = [
+    {ico:"🟢",ttl:"Старт",price:"от 700 ₽",desc:"Простой бот: приветствия, авто-ответы, FAQ, кнопочное меню. Для небольшого чата или личного проекта."},
+    {ico:"🔵",ttl:"Чат-бот",price:"от 1 200 ₽",desc:"Модерация, статистика, игры, реакции, рассылки. Оживляет сообщество и снимает рутину с админа."},
+    {ico:"🟣",ttl:"AI-бот",price:"от 2 000 ₽",desc:"Бот с нейросетью внутри: отвечает, генерит тексты, ведёт диалог с характером. Свой ИИ-помощник в Telegram."},
+    {ico:"🟠",ttl:"Бот-парсер",price:"от 2 500 ₽",desc:"Следит за источником (сайт/Discord/канал) 24/7 и шлёт уведомления: цены, сток, новости. Без дублей, с фильтрами."},
+    {ico:"🟡",ttl:"Под ключ",price:"договоримся",desc:"Своя идея? Опиши задачу — оценю и честно скажу, берусь или нет."}
+  ];
+
+  var box = document.getElementById('cards');
+  SERVICES.forEach(function(s,i){
+    var c = document.createElement('div');
+    c.className = 'card';
+    c.innerHTML = '<div class="row"><span class="ico">'+s.ico+'</span>'+
+                  '<span class="ttl">'+s.ttl+'</span>'+
+                  '<span class="price">'+s.price+'</span></div>'+
+                  '<div class="desc">'+s.desc+'</div>';
+    c.onclick = function(){
+      haptic('light');
+      var wasOpen = c.classList.contains('open');
+      document.querySelectorAll('.card').forEach(function(x){x.classList.remove('open')});
+      if(!wasOpen) c.classList.add('open');
+    };
+    box.appendChild(c);
+    setTimeout(function(){ c.classList.add('show'); }, 250 + i*90);
+  });
+
+  // появление заголовка и кнопок
+  setTimeout(function(){ document.getElementById('st').classList.add('show'); }, 200);
+  setTimeout(function(){ document.getElementById('order').classList.add('show'); }, 250 + SERVICES.length*90 + 100);
+  setTimeout(function(){ document.getElementById('links').classList.add('show'); }, 250 + SERVICES.length*90 + 200);
+
+  // заказ — отправляем данные боту и открываем личку
+  document.getElementById('order').onclick = function(){
+    haptic('medium');
+    if (tg && tg.sendData) {
+      tg.sendData(JSON.stringify({action:"order"}));
+    }
+    window.open("https://t.me/"+OWNER_USER, "_blank");
+  };
+  document.getElementById('channel').onclick = function(e){ e.preventDefault(); haptic('light'); (tg&&tg.openTelegramLink?tg.openTelegramLink(CHANNEL):window.open(CHANNEL)); };
+  document.getElementById('dm').onclick = function(e){ e.preventDefault(); haptic('light'); var u="https://t.me/"+OWNER_USER; (tg&&tg.openTelegramLink?tg.openTelegramLink(u):window.open(u)); };
+</script>
+</body>
+</html>
